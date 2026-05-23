@@ -17,6 +17,15 @@ data class UserProfile(
     val updatedAt: Timestamp? = null
 )
 
+data class PuntuacionData(
+    val id: String = "",
+    val puntuacion: Int = 0,
+    val comentario: String = "",
+    val imagenUri: String = "",
+    val timestamp: Timestamp? = null,
+    val userId: String = ""
+)
+
 object AuthRepository {
     private val auth by lazy { Firebase.auth }
     private val firestore by lazy { Firebase.firestore }
@@ -80,8 +89,68 @@ object AuthRepository {
         )
         firestore.collection("usuarios").document(uid)
             .set(profileData, SetOptions.merge())
-            .addOnSuccessListener { onComplete(true, "Datos guardados en Firestore") }
-            .addOnFailureListener { e -> onComplete(false, e.localizedMessage ?: "Error al guardar los datos") }
+            .addOnSuccessListener { onComplete(true, "Datos guardados con éxito") }
+            .addOnFailureListener { e -> onComplete(false, e.localizedMessage ?: "Error al guardar") }
+    }
+
+    fun savePuntuacion(
+        puntuacion: Int,
+        comentario: String,
+        imagenUri: String,
+        onComplete: (Boolean, String) -> Unit
+    ) {
+        val uid = currentUserId()
+        if (uid == null) {
+            onComplete(false, "Inicia sesión para puntuar")
+            return
+        }
+        val data = mapOf(
+            "userId" to uid,
+            "puntuacion" to puntuacion,
+            "comentario" to comentario,
+            "imagenUri" to imagenUri,
+            "timestamp" to Timestamp.now()
+        )
+        firestore.collection("puntuaciones")
+            .add(data)
+            .addOnSuccessListener { onComplete(true, "¡Puntuación guardada!") }
+            .addOnFailureListener { e -> onComplete(false, e.localizedMessage ?: "Error al guardar") }
+    }
+
+    fun getPuntuaciones(onResult: (List<PuntuacionData>) -> Unit) {
+        val uid = currentUserId()
+        if (uid == null) {
+            onResult(emptyList())
+            return
+        }
+        // Eliminamos .orderBy para evitar problemas de índices en Firestore
+        firestore.collection("puntuaciones")
+            .whereEqualTo("userId", uid)
+            .get()
+            .addOnSuccessListener { result ->
+                val list = result.documents.mapNotNull { doc ->
+                    PuntuacionData(
+                        id = doc.id,
+                        puntuacion = doc.getLong("puntuacion")?.toInt() ?: 0,
+                        comentario = doc.getString("comentario") ?: "",
+                        imagenUri = doc.getString("imagenUri") ?: "",
+                        timestamp = doc.getTimestamp("timestamp"),
+                        userId = doc.getString("userId") ?: ""
+                    )
+                }.sortedByDescending { it.timestamp?.seconds ?: 0L } // Ordenamos en el móvil
+
+                onResult(list)
+            }
+            .addOnFailureListener {
+                onResult(emptyList())
+            }
+    }
+
+    fun deletePuntuacion(id: String, onComplete: (Boolean) -> Unit) {
+        firestore.collection("puntuaciones").document(id)
+            .delete()
+            .addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { onComplete(false) }
     }
 
     fun loadProfile(onResult: (UserProfile?) -> Unit) {

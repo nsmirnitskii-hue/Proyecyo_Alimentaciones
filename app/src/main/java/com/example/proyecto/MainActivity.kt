@@ -34,5 +34,6 @@ fun AlimentacionApp() {
         composable("info") { InfoScreen(navController, state) }
         composable("alimentos") { AlimentosScreen(navController, state) }
         composable("resultado") { ResultadosScreen(navController, state) }
+        composable("puntuacion") { PuntuacionScreen(navController, state) }
     }
 }

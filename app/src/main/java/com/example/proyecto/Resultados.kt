@@ -42,7 +42,7 @@ fun ResultadosScreen(navController: NavController, state: AlimentacionState) {
             try {
                 // USANDO LA LÓGICA GRATUITA
                 val model = Firebase.ai(backend = GenerativeBackend.googleAI())
-                    .generativeModel("gemini-2 .5-flash")
+                    .generativeModel("gemini-2.5-flash")
                 
                 val prompt = """
                     Actúa como un nutricionista experto. Genera 3 recetas saludables en formato JSON.
@@ -55,7 +55,8 @@ fun ResultadosScreen(navController: NavController, state: AlimentacionState) {
                         "titulo": "nombre de la receta",
                         "descripcion": "pasos cortos",
                         "tiempo": "tiempo estimado",
-                        "enfoque": "por qué es buena para el objetivo"
+                        "enfoque": "por qué es buena para el objetivo",
+                        "imageUrl": "una URL de imagen de comida realista relacionada (puedes usar https://source.unsplash.com/featured/?food,nombre_receta)"
                       }
                     ]
                 """.trimIndent()
@@ -135,6 +136,11 @@ fun ResultadosScreen(navController: NavController, state: AlimentacionState) {
                 text = "Editar alimentos",
                 onClick = { navController.navigate(AppRoute.ALIMENTOS.route) }
             )
+            Spacer(modifier = Modifier.height(12.dp))
+            PrimaryButton(
+                text = "He cocinado este plato (Puntuar)",
+                onClick = { navController.navigate(AppRoute.PUNTUACION.route) }
+            )
         }
     }
 }
@@ -147,16 +153,17 @@ fun parseRecetasFromJson(json: String): List<Receta> {
             .trim()
         
         val recetasList = mutableListOf<Receta>()
-        val regex = Regex("""\{\s*"titulo":\s*"(.*?)",\s*"descripcion":\s*"(.*?)",\s*"tiempo":\s*"(.*?)",\s*"enfoque":\s*"(.*?)"\s*\}""", RegexOption.DOT_MATCHES_ALL)
+        val regex = Regex("""\{\s*"titulo":\s*"(.*?)",\s*"descripcion":\s*"(.*?)",\s*"tiempo":\s*"(.*?)",\s*"enfoque":\s*"(.*?)",\s*"imageUrl":\s*"(.*?)"\s*\}""", RegexOption.DOT_MATCHES_ALL)
         val matches = regex.findAll(cleaned)
-        
+
         for (match in matches) {
             recetasList.add(
                 Receta(
                     titulo = match.groups[1]?.value ?: "",
                     descripcion = match.groups[2]?.value ?: "",
                     tiempo = match.groups[3]?.value ?: "",
-                    enfoque = match.groups[4]?.value ?: ""
+                    enfoque = match.groups[4]?.value ?: "",
+                    imageUrl = match.groups[5]?.value ?: ""
                 )
             )
         }
@@ -168,8 +175,9 @@ fun parseRecetasFromJson(json: String): List<Receta> {
                 val desc = Regex("""\"descripcion\":\s*\"(.*?)\"""").find(item)?.groupValues?.get(1) ?: ""
                 val tiempo = Regex("""\"tiempo\":\s*\"(.*?)\"""").find(item)?.groupValues?.get(1) ?: ""
                 val enfoque = Regex("""\"enfoque\":\s*\"(.*?)\"""").find(item)?.groupValues?.get(1) ?: ""
+                val imageUrl = Regex("""\"imageUrl\":\s*\"(.*?)\"""").find(item)?.groupValues?.get(1) ?: ""
                 if (titulo.isNotBlank()) {
-                    recetasList.add(Receta(titulo, desc, tiempo, enfoque))
+                    recetasList.add(Receta(titulo, desc, tiempo, enfoque, imageUrl))
                 }
             }
         }

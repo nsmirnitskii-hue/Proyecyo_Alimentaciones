@@ -53,6 +53,9 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -99,14 +102,16 @@ data class Receta(
     val titulo: String,
     val descripcion: String,
     val tiempo: String,
-    val enfoque: String
+    val enfoque: String,
+    val imageUrl: String = ""
 )
 
 enum class AppRoute(val route: String, val title: String) {
     INICIO("inicio", "Inicio"),
     INFO("info", "Tu informacion"),
     ALIMENTOS("alimentos", "Alimentos"),
-    RESULTADO("resultado", "Tu dieta")
+    RESULTADO("resultado", "Tu dieta"),
+    PUNTUACION("puntuacion", "Puntuar Receta")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -217,6 +222,12 @@ fun DrawerContent(currentRoute: AppRoute, onNavigate: (String) -> Unit) {
             label = { Text(AppRoute.RESULTADO.title) },
             selected = currentRoute == AppRoute.RESULTADO,
             onClick = { onNavigate(AppRoute.RESULTADO.route) },
+            colors = drawerItemColors
+        )
+        NavigationDrawerItem(
+            label = { Text(AppRoute.PUNTUACION.title) },
+            selected = currentRoute == AppRoute.PUNTUACION,
+            onClick = { onNavigate(AppRoute.PUNTUACION.route) },
             colors = drawerItemColors
         )
     }
@@ -484,6 +495,18 @@ fun RecetaCard(receta: Receta) {
                 color = TextoGris.copy(alpha = 0.8f)
             )
 
+            if (receta.imageUrl.isNotEmpty()) {
+                Image(
+                    painter = rememberAsyncImagePainter(receta.imageUrl),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
             // Sección de enfoque mejorada para textos largos
             Column(
                 modifier = Modifier
@@ -562,19 +585,22 @@ fun generarRecomendaciones(objetivo: Objetivo, alimentos: List<String>): List<Re
             titulo = "Bowl inteligente $enfoque",
             descripcion = "Combina $ingredientes con especias suaves y una base de hoja verde.",
             tiempo = "15-20 min",
-            enfoque = enfoque
+            enfoque = enfoque,
+            imageUrl = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500"
         ),
         Receta(
             titulo = "Salteado rapido",
             descripcion = "Saltea $ingredientes con aceite de oliva y termina con limon.",
             tiempo = "12 min",
-            enfoque = "Cocina express"
+            enfoque = "Cocina express",
+            imageUrl = "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=500"
         ),
         Receta(
             titulo = "Plato unico mediterraneo",
             descripcion = "Mezcla $ingredientes con grano integral y hierbas frescas.",
             tiempo = "25 min",
-            enfoque = "Equilibrio completo"
+            enfoque = "Equilibrio completo",
+            imageUrl = "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?q=80&w=500"
         )
     )
 }
