@@ -83,18 +83,6 @@ fun InfoScreen(navController: NavController, state: AlimentacionState) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             PrimaryButton(
-                text = "Guardar mis datos",
-                onClick = {
-                    if (state.peso.isBlank() || state.altura.isBlank() || state.edad.isBlank()) {
-                        state.mensaje = "Introduce peso, altura y edad"
-                    } else {
-                        AuthRepository.saveProfile(state) { success, message ->
-                            state.mensaje = message
-                        }
-                    }
-                }
-            )
-            PrimaryButton(
                 text = "Siguiente: Mis alimentos",
                 onClick = {
                     if (state.peso.isBlank() || state.altura.isBlank() || state.edad.isBlank()) {

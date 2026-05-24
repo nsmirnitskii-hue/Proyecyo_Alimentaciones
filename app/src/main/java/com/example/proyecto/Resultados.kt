@@ -116,23 +116,6 @@ fun ResultadosScreen(navController: NavController, state: AlimentacionState) {
             }
             Spacer(modifier = Modifier.height(12.dp))
             PrimaryButton(
-                text = "Guardar cambios en Firestore",
-                onClick = {
-                    AuthRepository.saveProfile(state) { success, message ->
-                        state.mensaje = message
-                    }
-                }
-            )
-            if (state.mensaje.isNotBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = state.mensaje,
-                    color = if (state.mensaje.contains("error", ignoreCase = true)) Color.Red else VerdePrincipal,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            PrimaryButton(
                 text = "Editar alimentos",
                 onClick = { navController.navigate(AppRoute.ALIMENTOS.route) }
             )
